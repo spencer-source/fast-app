@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { useHeaderHeight } from '@react-navigation/elements'
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs'
@@ -8,12 +8,16 @@ import useAppearance from '@/hooks/useAppearance';
 
 import * as Crypto from 'expo-crypto'
 
-import { useAssets } from 'expo-asset';
-import { useFocusEffect } from 'expo-router';
+import { Asset } from 'expo-asset';
+
+interface Data {
+  id: string
+  asset: string
+}
 
 export default function TabTwoScreen() {
   const loaded = useRef(false)
-  const [list, setList] = useState([])
+  const [list, setList] = useState<Array<Data> | null>(null)
   const [loading, setLoading] = useState(true)
   const uuidv4 = () => Crypto.randomUUID()
   
@@ -21,54 +25,72 @@ export default function TabTwoScreen() {
   const h  = useHeaderHeight()
   const b = useBottomTabBarHeight()
 
-  const [assets, error] = useAssets([require('@/assets/videos/video_5.mp4'), require('@/assets/videos/video_3.mp4'), require('@/assets/videos/video_2.mp4'),require('@/assets/videos/video_1.mp4'), require('@/assets/videos/video_0.mp4')]);
-  
-  useFocusEffect(
-    useCallback(() => {
-      if (assets) {
-        console.log('assets found')
-        if (assets.length===5) {
-          const res = _createData()
-          setList(res)
+  const assetList = [
+    require('@/assets/videos/video_5.mp4'),
+    require('@/assets/videos/video_3.mp4'),
+    require('@/assets/videos/video_2.mp4'),
+    require('@/assets/videos/video_1.mp4'),
+    require('@/assets/videos/video_0.mp4')
+  ]
 
-          setTimeout(() => {
-            loaded.current = true
-            setLoading(false)
-          }, 1000)
-        } 
-      } 
-
-      return () => {
-        setList([])
-        loaded.current = false
-      }
-    }, [assets])
-  )
+  const repeat = (a, n) => 
+  Array.from({ length: a.length * n }, (_, i) => a[i % a.length]);
   
-  const _createData = () => {
+  function* generator() {
+    let i = 0
+    const mods = repeat(assetList, 2)
+
+    while(true) {
+      yield mods[i]
+      i++
+    }
+  }
+  
+  async function assetLoader(modId: string | number): Promise<string> {
+    const [{ uri }] = await Asset.loadAsync(modId)
+    return uri
+  }
+
+  async function createData() {
     const data = [];
-    for (let i=0; i<5; i+=1) {
+    const g = generator()
+    for (let i = 0; i < 10; i+=1) {
       data.push({
         id: uuidv4(),
-        zIndex: i,
-        asset: assets[i],
+        asset: await assetLoader(g.next().value),
       })
     }
     return data
   }
 
-  const _getData = () => {
-    setLoading(true);
-    
-    const response = _createData()
+  const getData = async () => {
+    if (!loaded.current) return
+    const response = await createData()
 
-    setTimeout(() => {
-      setList([...list, ...response])
-      setLoading(false)
-      console.log('promise resolved')
-    }, 500)
+    setList([...list, ...response])
+    
   }
 
+  
+
+  useEffect(() => {
+    createData()
+    .then(res => {
+      setList(res)
+      loaded.current = true
+      setLoading(false)
+    })
+    .catch(console.error)
+
+    return () => {
+      setList(undefined)
+      loaded.current = false
+      setLoading(true)
+    }
+
+  }, [])
+  
+  
   if (loading && loaded.current===false) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -79,25 +101,15 @@ export default function TabTwoScreen() {
 
   return (
     <View style={[styles.container]}>
-
-        <Virtualized list={list} onEndReached={_getData} headerHeight={h} tabBarHeight={b} />
-
+        <Virtualized list={list} onEndReached={getData} headerHeight={h} tabBarHeight={b} />
     </View>
   )
 }
 
 const styles = StyleSheet.create({
   container: {
+    display: 'flex',
     flex: 1,
     alignItems: 'center'
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  separator: {
-    marginVertical: 30,
-    height: 1,
-    width: '80%',
-  },
+  }
 });

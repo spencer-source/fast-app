@@ -94,7 +94,7 @@ export default function DrawerLayout() {
         <LogoTitle name={n[Title(route.name)].title} color={tintColor} size={22} />
       ),
       headerRight: ({ tintColor }) => (
-        <Link href="/modal" asChild>
+        <Link href="/about" asChild>
           <Pressable>
             {({ pressed }) => (
               <Ionicons
@@ -108,7 +108,7 @@ export default function DrawerLayout() {
         </Link>
       ),
     })} 
-    />
+    ></Drawer>
     </GestureHandlerRootView>
   )
 }

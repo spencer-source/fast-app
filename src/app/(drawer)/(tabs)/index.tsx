@@ -1,4 +1,4 @@
-import Constants from 'expo-constants';
+import { useState } from 'react';
 import { Pressable, StyleSheet } from 'react-native';
 import { ImageBackground } from 'expo-image'
 import { useHeaderHeight } from "@react-navigation/elements"
@@ -7,7 +7,7 @@ import EditScreenInfo from '@/components/EditScreenInfo';
 import { View, Text } from '@/components/Themed';
 
 import useAppearance from '@/hooks/useAppearance';
-import { useState } from 'react';
+
 import { Ionicons } from '@expo/vector-icons';
 
 export default function TabIndex() {

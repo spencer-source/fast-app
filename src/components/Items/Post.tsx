@@ -1,51 +1,41 @@
 import * as React from "react";
-import { Video, VideoProps, ResizeMode, AVPlaybackSource } from "expo-av";
+import { Video, VideoProps, ResizeMode } from "expo-av";
 import { StyleSheet, View, ViewProps, Text } from "react-native";
-import { Asset } from "expo-asset";
-
 
 interface Props extends ViewProps {
   data: {
     id: string
-    zIndex: number
-    asset: Asset
+    asset: string
   }
 }
 
 
-
 const Post = React.forwardRef((props: Props, ref) => {
-  const { data, style } = props;
   const video = React.useRef(null);
-  
-  React.useImperativeHandle(ref, () => video.current)
+
   React.useImperativeHandle(
     ref,
     () => ({
-      play() {
-        video.current.playAsync();
+      async play() {
+        await video.current.playAsync();
       },
-       pause() {
-         video.current.pauseAsync();
+       async pause() {
+         await video.current.pauseAsync();
       },
-       stop() {
-         video.current.stopAsync();
-      }
-    }),
+    })
   );
   return (
-    <View style={styles.root}>
+    <View style={props.style}>
+      <Text>uuidv4: {props.data.id}</Text>
       <Video 
       ref={video}
-      style={style}
-      source={data.asset ? data.asset : null}
+      source={{ uri: props.data.asset }}
+      style={styles.root}
       resizeMode={ResizeMode.CONTAIN}
+      shouldPlay={false}
       isLooping
-      >
-        <Text>{data.id}</Text>
-      </Video>
+      />
       </View>
-
   )
 })
 
@@ -53,7 +43,7 @@ export default React.memo(Post)
 
 const styles = StyleSheet.create({
   root: {
-    flexDirection: 'column-reverse'
+    flex: 1
   },
 })
 
