@@ -26,7 +26,6 @@ const Post = React.forwardRef((props: Props, ref) => {
   );
   return (
     <View style={props.style}>
-      <Text>uuidv4: {props.data.id}</Text>
       <Video 
       ref={video}
       source={{ uri: props.data.asset }}
@@ -35,6 +34,8 @@ const Post = React.forwardRef((props: Props, ref) => {
       shouldPlay={false}
       isLooping
       />
+      <Text style={{ position: 'relative', bottom: 20, left: 20 }}>uuidv4: {props.data.id}</Text>
+
       </View>
   )
 })

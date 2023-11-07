@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { useHeaderHeight } from '@react-navigation/elements'
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs'
@@ -9,6 +9,7 @@ import useAppearance from '@/hooks/useAppearance';
 import * as Crypto from 'expo-crypto'
 
 import { Asset } from 'expo-asset';
+import { useFocusEffect } from 'expo-router';
 
 interface Data {
   id: string
@@ -64,38 +65,41 @@ export default function TabTwoScreen() {
   }
 
   const getData = async () => {
-    if (!loaded.current) return
-    const response = await createData()
+    if (loaded.current) { 
+    return await createData().then(response => {
+      setList([...list, ...response])
+    })
+  }}
 
-    setList([...list, ...response])
-    
-  }
 
-  
-
-  useEffect(() => {
-    createData()
-    .then(res => {
+  useFocusEffect(
+    useCallback(() => {
+      createData()
+      .then(res => {
       setList(res)
       loaded.current = true
-      setLoading(false)
-    })
-    .catch(console.error)
+      setLoading(false)})
 
-    return () => {
-      setList(undefined)
-      loaded.current = false
-      setLoading(true)
-    }
+      return () => {
+        console.log('cleaning up...')
+        setList(undefined)
+        loaded.current = false
+        setLoading(true)
+      } 
 
+    }, [])
+  )
+
+  useEffect(() => {
+    getData()
   }, [])
-  
+
   
   if (loading && loaded.current===false) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <ActivityIndicator size="large" color="#5500dc" />
-        </View>
+        <ActivityIndicator size="large" color="#5500dc" />
+      </View>
     );
   }
 

@@ -56,7 +56,7 @@ export function Virtualized({
       data={list}
       ItemSeparatorComponent={_itemSeperator}
       initialNumToRender={4}
-      maxToRenderPerBatch={4}
+      maxToRenderPerBatch={3}
       windowSize={9}
       onEndReachedThreshold={0.5}
       onViewableItemsChanged={_onViewableItemsChanged.current}
